@@ -256,13 +256,24 @@ func expandSchema(target Schema, parentRefs []string, resolver *schemaLoader, ba
 		}
 	}
 
-	for k := range target.Properties {
-		t, err := expandSchema(target.Properties[k], parentRefs, resolver, basePath)
+	// for k := range target.Properties {
+	// 	t, err := expandSchema(target.Properties[k], parentRefs, resolver, basePath)
+	// 	if resolver.shouldStopOnError(err) {
+	// 		return &target, err
+	// 	}
+	// 	if t != nil {
+	// 		target.Properties[k] = *t
+	// 	}
+	// }
+
+	for _, v := range target.PropertiesArr {
+		t, err := expandSchema(v.Schema, parentRefs, resolver, basePath)
 		if resolver.shouldStopOnError(err) {
 			return &target, err
 		}
 		if t != nil {
-			target.Properties[k] = *t
+			target.setProperties(v.Name, t)
+			// target.Properties[k] = *t
 		}
 	}
 

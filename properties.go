@@ -17,6 +17,20 @@ type OrderSchemaItem struct {
 // The ordering is defined by the x-order schema extension.
 type OrderSchemaItems []OrderSchemaItem
 
+func (i OrderSchemaItems) DeepCopy() OrderSchemaItems {
+	var other OrderSchemaItems
+	for _, v := range i {
+		temp := OrderSchemaItem{
+			Name:   v.Name,
+			Schema: v.Schema,
+		}
+
+		other = append(other, temp)
+	}
+
+	return other
+}
+
 // MarshalJSON produces a json object with keys defined by the name schemas
 // of the OrderSchemaItems slice, keeping the original order of the slice.
 func (items OrderSchemaItems) MarshalJSON() ([]byte, error) {

@@ -158,41 +158,57 @@ func (r *SchemaURL) fromMap(v map[string]interface{}) error {
 
 // SchemaProps describes a JSON schema (draft 4)
 type SchemaProps struct {
-	ID                   string           `json:"id,omitempty"`
-	Ref                  Ref              `json:"-"`
-	Schema               SchemaURL        `json:"-"`
-	Description          string           `json:"description,omitempty"`
-	Type                 StringOrArray    `json:"type,omitempty"`
-	Nullable             bool             `json:"nullable,omitempty"`
-	Format               string           `json:"format,omitempty"`
-	Title                string           `json:"title,omitempty"`
-	Default              interface{}      `json:"default,omitempty"`
-	Maximum              *float64         `json:"maximum,omitempty"`
-	ExclusiveMaximum     bool             `json:"exclusiveMaximum,omitempty"`
-	Minimum              *float64         `json:"minimum,omitempty"`
-	ExclusiveMinimum     bool             `json:"exclusiveMinimum,omitempty"`
-	MaxLength            *int64           `json:"maxLength,omitempty"`
-	MinLength            *int64           `json:"minLength,omitempty"`
-	Pattern              string           `json:"pattern,omitempty"`
-	MaxItems             *int64           `json:"maxItems,omitempty"`
-	MinItems             *int64           `json:"minItems,omitempty"`
-	UniqueItems          bool             `json:"uniqueItems,omitempty"`
-	MultipleOf           *float64         `json:"multipleOf,omitempty"`
-	Enum                 []interface{}    `json:"enum,omitempty"`
-	MaxProperties        *int64           `json:"maxProperties,omitempty"`
-	MinProperties        *int64           `json:"minProperties,omitempty"`
-	Required             []string         `json:"required,omitempty"`
-	Items                *SchemaOrArray   `json:"items,omitempty"`
-	AllOf                []Schema         `json:"allOf,omitempty"`
-	OneOf                []Schema         `json:"oneOf,omitempty"`
-	AnyOf                []Schema         `json:"anyOf,omitempty"`
-	Not                  *Schema          `json:"not,omitempty"`
-	Properties           SchemaProperties `json:"properties,omitempty"`
+	ID               string         `json:"id,omitempty"`
+	Ref              Ref            `json:"-"`
+	Schema           SchemaURL      `json:"-"`
+	Description      string         `json:"description,omitempty"`
+	Type             StringOrArray  `json:"type,omitempty"`
+	Nullable         bool           `json:"nullable,omitempty"`
+	Format           string         `json:"format,omitempty"`
+	Title            string         `json:"title,omitempty"`
+	Default          interface{}    `json:"default,omitempty"`
+	Maximum          *float64       `json:"maximum,omitempty"`
+	ExclusiveMaximum bool           `json:"exclusiveMaximum,omitempty"`
+	Minimum          *float64       `json:"minimum,omitempty"`
+	ExclusiveMinimum bool           `json:"exclusiveMinimum,omitempty"`
+	MaxLength        *int64         `json:"maxLength,omitempty"`
+	MinLength        *int64         `json:"minLength,omitempty"`
+	Pattern          string         `json:"pattern,omitempty"`
+	MaxItems         *int64         `json:"maxItems,omitempty"`
+	MinItems         *int64         `json:"minItems,omitempty"`
+	UniqueItems      bool           `json:"uniqueItems,omitempty"`
+	MultipleOf       *float64       `json:"multipleOf,omitempty"`
+	Enum             []interface{}  `json:"enum,omitempty"`
+	MaxProperties    *int64         `json:"maxProperties,omitempty"`
+	MinProperties    *int64         `json:"minProperties,omitempty"`
+	Required         []string       `json:"required,omitempty"`
+	Items            *SchemaOrArray `json:"items,omitempty"`
+	AllOf            []Schema       `json:"allOf,omitempty"`
+	OneOf            []Schema       `json:"oneOf,omitempty"`
+	AnyOf            []Schema       `json:"anyOf,omitempty"`
+	Not              *Schema        `json:"not,omitempty"`
+	// PropertiesEx         SchemaProperties `json:"propertiesEx,omitempty"`
+	PropertiesArr        OrderSchemaItems `json:"properties,omitempty"`
 	AdditionalProperties *SchemaOrBool    `json:"additionalProperties,omitempty"`
 	PatternProperties    SchemaProperties `json:"patternProperties,omitempty"`
 	Dependencies         Dependencies     `json:"dependencies,omitempty"`
 	AdditionalItems      *SchemaOrBool    `json:"additionalItems,omitempty"`
 	Definitions          Definitions      `json:"definitions,omitempty"`
+}
+
+func (s *SchemaProps) setProperties(name string, sch *Schema) {
+	for _, v := range s.PropertiesArr {
+		if v.Name == name {
+			return
+		}
+	}
+
+	temp := OrderSchemaItem{
+		Name:   name,
+		Schema: *sch,
+	}
+
+	s.PropertiesArr = append(s.PropertiesArr, temp)
 }
 
 // SwaggerSchemaProps are additional properties supported by swagger schemas, but not JSON-schema (draft 4)
@@ -255,17 +271,24 @@ func (s *Schema) WithDescription(description string) *Schema {
 }
 
 // WithProperties sets the properties for this schema
-func (s *Schema) WithProperties(schemas map[string]Schema) *Schema {
-	s.Properties = schemas
+func (s *Schema) WithProperties( /*schemas map[string]Schema*/ schemas []OrderSchemaItem) *Schema {
+	for _, v := range schemas {
+		s.setProperties(v.Name, &v.Schema)
+	}
+
+	//	s.Properties = schemas
 	return s
 }
 
 // SetProperty sets a property on this schema
 func (s *Schema) SetProperty(name string, schema Schema) *Schema {
-	if s.Properties == nil {
-		s.Properties = make(map[string]Schema)
-	}
-	s.Properties[name] = schema
+	// if s.Properties == nil {
+	// 	s.Properties = make(map[string]Schema)
+	// }
+	// s.Properties[name] = schema
+
+	s.setProperties(name, &schema)
+
 	return s
 }
 
